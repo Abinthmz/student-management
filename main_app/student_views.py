@@ -22,7 +22,7 @@ def student_home(request):
     if total_attendance == 0:  # Don't divide. DivisionByZero
         percent_absent = percent_present = 0
     else:
-        percent_present = math.floor((total_present/total_attendance) * 100)
+        percent_present = math.floor((total_present / total_attendance) * 100)
         percent_absent = math.ceil(100 - percent_present)
     subject_name = []
     data_present = []
@@ -52,7 +52,7 @@ def student_home(request):
     return render(request, 'student_template/home_content.html', context)
 
 
-@ csrf_exempt
+@csrf_exempt
 def student_view_attendance(request):
     student = get_object_or_404(Student, admin=request.user)
     if request.method != 'POST':
@@ -68,6 +68,16 @@ def student_view_attendance(request):
         end = request.POST.get('end_date')
         try:
             subject = get_object_or_404(Subject, id=subject_id)
+
+            total_attendance = AttendanceReport.objects.filter(student=student).count()
+            total_present = AttendanceReport.objects.filter(student=student, attendance__subject=subject, status=True).count()
+            if total_attendance == 0:  # Don't divide. DivisionByZero
+                percent_absent = percent_present = 0
+            else:
+                percent_present = math.floor((total_present / total_attendance) * 100)
+                percent_absent = math.ceil(100 - percent_present)
+
+            subject = get_object_or_404(Subject, id=subject_id)
             start_date = datetime.strptime(start, "%Y-%m-%d")
             end_date = datetime.strptime(end, "%Y-%m-%d")
             attendance = Attendance.objects.filter(
@@ -77,10 +87,15 @@ def student_view_attendance(request):
             json_data = []
             for report in attendance_reports:
                 data = {
-                    "date":  str(report.attendance.date),
+                    "date": str(report.attendance.date),
                     "status": report.status
                 }
                 json_data.append(data)
+
+            json_data.append({
+                "percent_present": percent_present
+            })
+
             return JsonResponse(json.dumps(json_data), safe=False)
         except Exception as e:
             return None

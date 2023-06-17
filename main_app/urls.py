@@ -1,4 +1,5 @@
 
+import reverse
 from django.urls import path
 
 from main_app.EditResultView import EditResultView
@@ -69,6 +70,7 @@ urlpatterns = [
     path("subject/edit/<int:subject_id>",
          hod_views.edit_subject, name='edit_subject'),
 
+    path('percent/<int:student_id>/', hod_views.percent, name='percent'),
 
     # Staff
     path("staff/home/", staff_views.staff_home, name='staff_home'),

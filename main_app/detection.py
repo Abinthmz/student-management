@@ -1,8 +1,9 @@
 import face_recognition
-import os, sys
+import os
 import cv2
 import numpy as np
 import math
+import urllib.request
 
 
 # Helper
@@ -24,7 +25,7 @@ class FaceRecognition:
     known_face_encodings = []
     known_face_names = []
     process_current_frame = True
-    students_present =[]
+    students_present = []
 
     def __init__(self):
         self.encode_faces()
@@ -36,23 +37,20 @@ class FaceRecognition:
 
             self.known_face_encodings.append(face_encoding)
             self.known_face_names.append(image)
-        print(self.known_face_names)
 
     def run_recognition(self):
         my_list = []
-        video_capture = cv2.VideoCapture(0)
-
-        if not video_capture.isOpened():
-            sys.exit('Video source not found...')
+        url='http://192.168.83.249/640x480.jpg'
+        students_present=[]
 
         while True:
-            ret, frame = video_capture.read()
+            img_resp = urllib.request.urlopen(url)
+            imgnp = np.array(bytearray(img_resp.read()), dtype=np.uint8)
+            frame = cv2.imdecode(imgnp, -1)
+            small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+            rgb_small_frame = small_frame[:, :, ::-1]
 
             if self.process_current_frame:
-                small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
-                    #frame small akaumpo error but yyyyy??
-                rgb_small_frame = small_frame[:, :, ::-1]
-
                 self.face_locations = face_recognition.face_locations(frame)
                 self.face_encodings = face_recognition.face_encodings(frame, self.face_locations)
 
@@ -69,37 +67,23 @@ class FaceRecognition:
                         name = self.known_face_names[best_match_index]
                         confidence = face_confidence(face_distances[best_match_index])
                         print(f'{name} ({confidence})')
-                        if (confidence) > '85':
+                        if float(confidence[:-1]) > 85.0:
                             my_list.append(name)
                             print(name)
                             if name not in self.students_present:
                                 self.students_present.append(name)
+                                print(self.students_present)
 
                     self.face_names.append(f'{name} ({confidence})')
 
-            self.process_current_frame = not self.process_current_frame
-
-            for (top, right, bottom, left), name in zip(self.face_locations, self.face_names):
-                top *= 4
-                right *= 4
-                bottom *= 4
-                left *= 4
-
-                cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-                cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
-                cv2.putText(frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 1)
-
             cv2.imshow('Face Recognition', frame)
-
-            if cv2.waitKey(1) == ord('q'):
-                video_capture.release()
-                cv2.destroyAllWindows()
-                return self.students_present
-
-
-
-if __name__ == '__main__':
-    fr = FaceRecognition()
-    fr.run_recognition()
+            key = cv2.waitKey(5)
+            if key == ord('q'):
+                break
+        cv2.destroyAllWindows()
+        return self.students_present
 
 
+fr = FaceRecognition()
+students_present = fr.run_recognition()
+print("Students present:", students_present)

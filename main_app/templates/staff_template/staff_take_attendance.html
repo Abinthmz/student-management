@@ -17,7 +17,15 @@
                     <!-- form start -->
                     <div class="card-body">
 
+                           <div class="form-group">
+                            <label>Department</label>
+                            <label>:    CSE</label>
 
+
+                        <div class="form-group">
+                            <label>Class</label>
+                            <label>:    S8</label>
+                        </div>
 
                         <div class="form-group">
                             <label>Subject</label>
@@ -29,18 +37,7 @@
                             </select>
                         </div>
 
-
-                        <div class="form-group">
-                            <label>Session Year</label>
-                            <select name="session" id='session' class="form-control">
-                                <option value="">----</option>
-                                {% for session in sessions  %}
-                                <option value="{{session.id}}">{{session}} </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="form-group">
+                                <div class="form-group">
                             <label>Hour Number</label>
                             <select name="hour" id='hour' class="form-control">
                                 <option value="">----</option>
@@ -50,25 +47,24 @@
                             </select>
                         </div>
 
-                        <div class="form-group">
-                            <label>Dept</label>
-                            <select name="dept" id='year' class="form-control"> //yr ---->Dept
-                                <option value="">----</option>
-                                {% for yr in year  %}
-                                <option value="{{yr.id}}">{{yr}} </option>
-                                {% endfor %}
-                            </select>
-                        </div>
+
 
                         <div class="form-group">
-                            <label>Class</label>
-                            <select name="clas" id='clas' class="form-control">
-                                <option value="">----</option>
-                                {% for cl in clas  %}
-                                <option value="{{cl.id}}">{{cl}} </option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                                <label>Session</label>
+                                <select name="session" class="form-control" id="session">
+                                    {% if sessions %}
+                                    {% for session in sessions %}
+                                    <option value="{{ session.id }}" {% if forloop.first %}selected{% endif %}>{{ session }}</option>
+                                    {% endfor %}
+                                    {% else %}
+                                    <option value="" disabled>No sessions available</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+
+
+
+
                         {% comment %}
 
                         <div>

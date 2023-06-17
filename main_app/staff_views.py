@@ -68,28 +68,36 @@ def get_students(request):
         students = Student.objects.filter(
             course_id=subject.course.id, session=session)
 
+        print("Before face recog - ###############")
         fr = FaceRecognition()
+        fr.encode_faces()
         result = fr.run_recognition()
-        print(result)
+        print(result, "#####################")
+
+        student_data = []
+        stud = []
+
         for student in students:
             name = student.admin.first_name
             for resl in result:
-                if resl[:4] == name[:4] :
+                res = 0
+                if resl[:4].lower() == (name[:4]).lower():
                     print(name)
                     res = 1
 
-                    student_data = []
-                    stud = []
-
-                    for student in students:
-                        data = {
-                                "id": student.id,
-                                "name": student.admin.first_name + " " + student.admin.last_name,
-                                "result" : res
-                                }
+                data = {
+                        "id": student.id,
+                        "name": student.admin.first_name + " " + student.admin.last_name,
+                        "result": res
+                        }
+                data1 = data["name"]
+                if data not in student_data:
+                    if data1 not in student_data:
                         student_data.append(data)
-                        res = 0
-            return JsonResponse(json.dumps(student_data), content_type='application/json', safe=False)
+
+        result.clear()
+        print(result)
+        return JsonResponse(json.dumps(student_data), content_type='application/json', safe=False)
     except Exception as e:
         return e
 
@@ -100,13 +108,15 @@ def save_attendance(request):
     date = request.POST.get('date')
     subject_id = request.POST.get('subject')
     session_id = request.POST.get('session')
-    hour = request.POST.get('hr')
+    hour = request.POST.get('hrs')
     year = request.POST.get('yr')
     clas = request.POST.get('cl')
     students = json.loads(student_data)
     try:
         session = get_object_or_404(Session, id=session_id)
         subject = get_object_or_404(Subject, id=subject_id)
+        hour = get_object_or_404(Hour, id=subject_id)
+
         attendance = Attendance(session=session, subject=subject, date=date, hour=hour, year=year, clas=clas)
         attendance.save()
 
@@ -149,7 +159,7 @@ def get_student_attendance(request):
         student_data = []
         for attendance in attendance_data:
             data = {"id": attendance.student.admin.id,
-                    "name": attendance.student.admin.last_name + " " + attendance.student.admin.first_name,
+                    "name": attendance.student.admin.first_name + " " + attendance.student.admin.last_name,
                     "status": attendance.status}
             student_data.append(data)
         return JsonResponse(json.dumps(student_data), content_type='application/json', safe=False)
@@ -171,10 +181,10 @@ def update_attendance(request):
             attendance_report = get_object_or_404(AttendanceReport, student=student, attendance=attendance)
             attendance_report.status = student_dict.get('status')
             attendance_report.save()
-    except Exception as e:
-        return None
 
-    return HttpResponse("OK")
+        return HttpResponse("OK")
+    except Exception as e:
+        return HttpResponse("Error in saving attendance: " + str(e), status=500)
 
 
 def staff_apply_leave(request):

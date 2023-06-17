@@ -1,8 +1,10 @@
 import json
+import math
+
 import requests
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, Http404
 from django.shortcuts import (HttpResponse, HttpResponseRedirect,
                               get_object_or_404, redirect, render)
 from django.templatetags.static import static
@@ -242,6 +244,37 @@ def edit_staff(request, staff_id):
         user = CustomUser.objects.get(id=staff_id)
         staff = Staff.objects.get(id=user.id)
         return render(request, "hod_template/edit_staff_template.html", context)
+
+
+def percent(request, student_id):
+    if not student_id:
+
+        raise Http404("Invalid student ID")
+
+    context = {}
+    student = get_object_or_404(Student, id=student_id)
+    subject = Subject.objects.all()
+
+    attendance_data = []
+    for sub in subject:
+        name = sub.name
+        total_attendance = AttendanceReport.objects.filter(student=student).count()
+        total_present = AttendanceReport.objects.filter(student=student, attendance__subject=sub, status=True).count()
+        if total_attendance == 0:   
+            percent_present = 0
+        else:
+            percent_present = math.floor((total_present / total_attendance) * 100)
+
+        data = {
+            'name': name,
+            'percent_present': percent_present
+        }
+        attendance_data.append(data)
+
+    context['attendance_data'] = attendance_data
+    context['student'] = student
+
+    return render(request, "hod_template/student_attendance_percent.html", context)
 
 
 def edit_student(request, student_id):
@@ -497,10 +530,16 @@ def view_student_leave(request):
 def admin_view_attendance(request):
     subjects = Subject.objects.all()
     sessions = Session.objects.all()
+    hour = Hour.objects.all()
+    year = Year.objects.all()
+    clas = Clas.objects.all()
     context = {
         'subjects': subjects,
         'sessions': sessions,
-        'page_title': 'View Attendance'
+        'hour': hour,
+        'year': year,
+        'clas': clas,
+        'page_title': 'Update Attendance'
     }
 
     return render(request, "hod_template/admin_view_attendance.html", context)

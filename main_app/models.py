@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from datetime import date
 
 
 class CustomUserManager(UserManager):
@@ -29,8 +30,8 @@ class CustomUserManager(UserManager):
 
 
 class Session(models.Model):
-    start_year = models.DateField()
-    end_year = models.DateField()
+    start_year = models.DateField(default=date.fromisoformat("2023-12-01"))
+    end_year = models.DateField(default=date.fromisoformat("2024-12-01"))
 
     def __str__(self):
         return "From " + str(self.start_year) + " to " + str(self.end_year)
@@ -43,9 +44,9 @@ class CustomUser(AbstractUser):
     username = None  # Removed username, using email instead
     email = models.EmailField(unique=True)
     user_type = models.CharField(default=1, choices=USER_TYPE, max_length=1)
-    gender = models.CharField(max_length=1, choices=GENDER)
+    gender = models.CharField(max_length=1, choices=GENDER, default='Male')
     profile_pic = models.ImageField()
-    address = models.TextField()
+    address = models.TextField(default='Alp')
     fcm_token = models.TextField(default="")  # For firebase notifications
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -54,7 +55,7 @@ class CustomUser(AbstractUser):
     objects = CustomUserManager()
 
     def __str__(self):
-        return self.last_name + ", " + self.first_name
+        return self.first_name + " " + self.last_name
 
 
 class Admin(models.Model):

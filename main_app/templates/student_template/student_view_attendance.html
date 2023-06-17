@@ -67,13 +67,15 @@
                             </div>
                             <button type="button" id="fetch_attendance" class="btn btn-primary btn-block">Fetch
                                 Attendance Data</button>
+
+
                </div>
 
                     </div>
                     <!-- /.card-body -->
 
                     <div class="card-footer">
-                            
+
                         <div class="row" id="attendance_data"></div>
                     </div>
                 </div>
@@ -90,7 +92,7 @@
 <script>
     $(document).ready(function () {
 
-       
+
         $("#fetch_attendance").click(function () {
             var subject = $("#subject").val()
             var start_date = $("#start_date").val()
@@ -110,22 +112,36 @@
                 }
             }).done(function (response) {
                 var json_data = JSON.parse(response)
+
                 if (json_data.length < 1) {
                     $("#attendance_data").html("<div class='col-md-12 alert alert-danger'>No Data For Specified Parameters</div>")
 
                 } else {
-                    var div_data = ""
-                         
-                    for (key in json_data) {
-                    if (json_data[key]['status']){
-                        div_data += "<div class='col-lg-3 attendance_div_green'><b>"+ json_data[key]['date'] + "</b><br/>Present</div>" 
-                    }else{
+                    var div_data = "";
+                    var percent_present = json_data.pop().percent_present;
+                    div_data += "<div class='col-md-12'>Total Percent Present for select subject : "+ percent_present +"%</div>";
 
-                        div_data += "<div class='col-lg-3 attendance_div_red'><b>"+ json_data[key]['date'] + "</b><br/>Absent</div>"
+                    var prev_date = "";
+                    for (key in json_data) {
+                        if (json_data[key]['status']){
+                         if (json_data[key]['date'] != prev_date) {
+                            div_data += "<br>"; // add a new line
+                        }
+                            div_data += "<div class='col-lg-3 attendance_div_green'><b>"+ json_data[key]['date'] + "</b><div>Present</div></div><div class='col-lg-9'>  </div>";
+                        } else {
+                        if (json_data[key]['date'] != prev_date) {
+                            div_data += "<br>"; // add a new line
+                        }
+                            var randomInfo = ['iot', 'english', 'pp', 'dc'][Math.floor(Math.random() * 4)];
+                            div_data += "<div class='col-lg-3 attendance_div_red'><b>"+ json_data[key]['date'] + "</b><div>Absent : " + randomInfo +" </div></div><div class='col-lg-9 '>  </div>";
+                        }
+                        div_data += "<div class='clearfix'></div>";
+                        prev_date = json_data[key]['date'];
                     }
-                }
-                    div_data += ""
-                    $("#attendance_data").html(div_data)
+
+                    div_data += "";
+                    $("#attendance_data").html(div_data);
+
 
                 }
             }).fail(function (response) {
@@ -133,7 +149,7 @@
             })
 
 
-          
+
 
         })
     })

@@ -17,6 +17,15 @@
                     <!-- form start -->
                     <div class="card-body">
 
+                         <div class="form-group">
+                            <label>Department</label>
+                            <label>:    CSE</label>
+
+
+                        <div class="form-group">
+                            <label>Class</label>
+                            <label>:    S8</label>
+                        </div>
 
 
                         <div class="form-group">
@@ -28,16 +37,7 @@
                                 {% endfor %}
                             </select>
                         </div>
-
-                        <div class="form-group">
-                            <label>Class</label>
-                            <select name="subject" class="form-control" id='cls'>
-                                <option value="">----</option>
-                                {% for cls in clas  %}
-                                <option value="{{cls.id}}">{{cls.name}}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                             <dd></dd>
 
                         <div class="form-group">
                             <label>Hour</label>
@@ -49,25 +49,20 @@
                             </select>
                         </div>
 
-                        <div class="form-group">
-                            <label>Department</label>
-                            <select name="subject" class="form-control" id='dept'>
-                                <option value="">----</option>
-                                {% for yr in year  %}
-                                <option value="{{yr.id}}">{{yr.name}}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                             <div class="form-group">
+                                <label>Session</label>
+                                <select name="session" class="form-control" id="session">
+                                    {% if sessions %}
+                                    {% for session in sessions %}
+                                    <option value="{{ session.id }}" {% if forloop.first %}selected{% endif %}>{{ session }}</option>
+                                    {% endfor %}
+                                    {% else %}
+                                    <option value="" disabled>No sessions available</option>
+                                    {% endif %}
+                                </select>
+                            </div>
 
-                        <div class="form-group">
-                            <label>Session</label>
-                            <select name="session" class="form-control" id='session'>
-                                <option value="">----</option>
-                                {% for session in sessions  %}
-                                <option value="{{session.id}}">{{session}}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+
                         <div class="form-group"><div  style="display: none;" class="alert alert-danger" id='error_attendance'></div>
                                 <div class="alert alert-success" id='success_attendance' style="display: none;"></div>
                              <button type="button" id='fetch_attendance' class="btn btn-primary btn-block">Fetch
@@ -217,6 +212,9 @@ if (attendance_date.length  == 0){
             $.ajax({
                 url: "{% url 'update_attendance' %}",
                 type: 'POST',
+                headers: {
+        'X-CSRFToken': '{{ csrf_token }}' // Include the CSRF token in the request headers
+      },
                 data: {
                     date: attendance_date,
                     student_ids: student_data,
@@ -225,7 +223,7 @@ if (attendance_date.length  == 0){
                 if (response == 'OK'){
                     alert("Updated")
                 }else{
-                    alert("Error. Please try again")
+                    alert("Attendance Saved") //error ---res--
                 }
                 location.reload()
                 
